@@ -9,6 +9,6 @@ share
 pyvenv.cfg
 .venv
 pip-selfcheck.json
-.jpg
-.png
-.pdf
+*.jpg
+*.png
+*.pdf
