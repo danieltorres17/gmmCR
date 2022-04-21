@@ -6,6 +6,7 @@
 [Ll]ocal
 [Ss]cripts
 share
+data
 pyvenv.cfg
 .venv
 pip-selfcheck.json
