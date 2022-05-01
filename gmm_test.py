@@ -5,12 +5,13 @@ from sklearn.datasets import make_blobs
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+import pickle
 
 from gmm import GMM
 
 def main():
   # number of clusters
-  num_clusters = 3
+  num_clusters = 4
   # get data
   X, y = make_blobs(n_samples=60, centers=num_clusters, n_features=3, cluster_std=0.5)
   print("X shape: ", X.shape)
@@ -18,29 +19,6 @@ def main():
   # print(X)
   # print()
 
-  # # number of clusters to try
-  # num_clusters_range = np.arange(start=2, stop=10)
-  # # to store silhouette scores
-  # sil_scores = []
-  # # for each number of clusters, fit a KMeans classifier
-  # for nc in num_clusters_range:
-  #   # fit KMeans model
-  #   model = KMeans(n_clusters=nc, random_state=0).fit(X)
-  #   # make predictions on training data
-  #   cluster_labels = model.fit_predict(X)
-  #   # calculate silhouette score
-  #   silhouette_avg = silhouette_score(X, cluster_labels)
-  #   # store score
-  #   sil_scores.append(silhouette_avg)
-
-  # # find optimal number of clusters (arg of max silhouette score)
-  # opt_num_clusters = np.argmax(sil_scores) + 2
-  # # fit KMeans classifier with optimal number of clusters
-  # model = KMeans(n_clusters=opt_num_clusters).fit(X)
-  # print(f"Silhouette scores: {sil_scores}")
-  # print(f"Optimal number of clusters: {opt_num_clusters}")
-  # print("Cluster centers: ", model.cluster_centers_)
-  
   # get GMM object and fit on data
   gmm = GMM(X)
   # print(gmm.cluster_means)
@@ -66,7 +44,8 @@ def main():
   print()
 
   # comparison model
-  gm_test = GaussianMixture(n_components=num_clusters).fit(X)
+  gm_test = GaussianMixture(n_components=num_clusters, covariance_type='spherical').fit(X)
+  # gm_test = GaussianMixture(n_components=num_clusters).fit(X)
   print("sklearn GMM estimated means: ")
   print(gm_test.means_)
   print()
@@ -75,6 +54,11 @@ def main():
   print()
   print("sklearn GMM estimated weights: ")
   print(gm_test.weights_)
+
+  # save generated GMM parameters to file
+  np.save('gmm_means.npy', gmm.cluster_means)
+  np.save('gmm_covs.npy', gmm.cluster_covs)
+  np.save('gmm_weights.npy', gmm.weights)
 
   # plot test data
   fig = plt.figure()
