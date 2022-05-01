@@ -6,9 +6,11 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 class GMM:
-  def __init__(self, X, num_iters=100):
+  def __init__(self, X, num_iters=100, cov_type="spherical"):
     # define number of features
     self.num_features = X.shape[1]
+    # define covariance type
+    self.cov_type = cov_type
     # declare mean array
     self.cluster_means = None
     # declare covariance matrices array
@@ -41,7 +43,7 @@ class GMM:
     self.cluster_covs = [np.cov(X.T) + np.eye(self.num_features) 
                          for _ in range(self.num_clusters)]
 
-  def initMeansAndCovs(self, X, verbose=False):
+  def initMeansAndCovs(self, X, verbose=True):
     """
     Initialize the GMM means with the results from the KMeans classifier. 
     The optimal number of clusters for KMeans is found using the silhouette
@@ -49,7 +51,7 @@ class GMM:
     https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html 
     """
     # number of clusters to try
-    num_clusters_range = np.arange(start=2, stop=10)
+    num_clusters_range = np.arange(start=10, stop=100, step=10)
     # to store silhouette scores
     sil_scores = []
     # for each number of clusters, fit a KMeans classifier
@@ -117,12 +119,23 @@ class GMM:
       self.cluster_means[k] /= np.sum(cp)
 
     # update cluster covariances
-    for k in range(self.num_clusters):
-      cp = np.expand_dims(self.cluster_probs[:,k], axis=1)
-      cluster_cov = np.zeros((self.num_clusters, self.num_clusters))
-      diff = X - self.cluster_means[k]
-      cluster_cov = np.dot(diff.T, (diff*cp)) / np.sum(cp)
-      self.cluster_covs[k] = cluster_cov
+    # if spherical covariances (default)
+    if self.cov_type == 'spherical':
+      for k in range(self.num_clusters):
+        cp = np.expand_dims(self.cluster_probs[:,k], axis=1)
+        # print(f"cp dimensions: {cp.shape}")
+        diff = np.linalg.norm(X - self.cluster_means[k], axis=1, keepdims=True)
+        # print(f"diff dimensions: {diff.shape}")
+        cluster_cov = np.dot(cp.T, diff) / (self.num_features * np.sum(cp))
+        self.cluster_covs[k] = cluster_cov * np.eye(self.num_features)
+    else:
+      # full covariances
+      for k in range(self.num_clusters):
+        cp = np.expand_dims(self.cluster_probs[:,k], axis=1)
+        cluster_cov = np.zeros((self.num_clusters, self.num_clusters))
+        diff = X - self.cluster_means[k]
+        cluster_cov = np.dot(diff.T, (diff*cp)) / np.sum(cp)
+        self.cluster_covs[k] = cluster_cov
 
     # update cluster weights
     self.weights = np.mean(self.cluster_probs, axis=0)
