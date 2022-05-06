@@ -51,7 +51,8 @@ class GMM:
     https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html 
     """
     # number of clusters to try
-    num_clusters_range = np.arange(start=10, stop=100, step=10)
+    # num_clusters_range = np.arange(start=10, stop=100, step=10)
+    num_clusters_range = np.arange(start=2, stop=10, step=1)
     # to store silhouette scores
     sil_scores = []
     # for each number of clusters, fit a KMeans classifier
